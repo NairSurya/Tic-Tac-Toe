@@ -10,7 +10,9 @@ import Foundation
 import UIKit
 
 class CustomButton: UIButton {
-    var value = 1
+    var value = -1
+    var cross: UIImage?
+    var zero: UIImage?
     required init!(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         initialize()
@@ -26,10 +28,15 @@ class CustomButton: UIButton {
     func setID(id: Int) {
         self.id = id;
     }
-    
+    func clear() {
+        value = -1
+        self.setImage(nil , forState: .Normal)
+    }
     func initialize() {
-        //Border
-        //        self.layer.cornerRadius = 15.0;
+        cross = UIImage(named: "cross.png")
+        zero = UIImage(named: "zero.png")
+        
+        //self.layer.cornerRadius = 15.0;
         self.layer.borderWidth = 1.5
         self.layer.borderColor = UIColor.redColor().CGColor
         
@@ -38,14 +45,11 @@ class CustomButton: UIButton {
         
     }
     
+    
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        if(value == 1){
-            print ("\(id) = X")
-        
-        }
-        else {print ("\(id) = 0")}
-        
         value = value == 1 ? 0 : 1
+        self.setImage(value == 1 ? cross : zero, forState: UIControlState.Normal)
+
         
     }
 }

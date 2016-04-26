@@ -9,11 +9,24 @@
 import UIKit
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, PNObjectEventListener {
 
     var window: UIWindow?
+    var client : PubNub
+    var config : PNConfiguration
+    let channel: String = "com.surya.tictactoe"
+    
+    override init() {
+        config = PNConfiguration(publishKey: "pub-c-b3cd53b4-c7f2-471a-82a4-f10d3869ff1f", subscribeKey: "sub-c-7af9a456-0b7f-11e6-a9bb-02ee2ddab7fe")
+        client = PubNub.clientWithConfiguration(config)
+        client.subscribeToChannels([channel], withPresence: false)
+        client.publish("Swift+PubNub!", toChannel: channel, compressed: false, withCompletion: nil)
+        
+        super.init()
+        client.addListener(self)
+    }
 
-
+    
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
         return true
