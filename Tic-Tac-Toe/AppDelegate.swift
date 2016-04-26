@@ -21,9 +21,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PNObjectEventListener {
         client = PubNub.clientWithConfiguration(config)
         client.subscribeToChannels([channel], withPresence: false)
         client.publish("Swift+PubNub!", toChannel: channel, compressed: false, withCompletion: nil)
-        
         super.init()
         client.addListener(self)
+    }
+    
+    func client(client: PubNub, didReceiveMessage message: PNMessageResult) {
+        print(message.data)
+        let fullName = "First Last"
+        let fullNameArr = fullName.characters.split{$0 == " "}.map(String.init)        
+        fullNameArr[0] // First
+        fullNameArr[1] // Last
     }
 
     
