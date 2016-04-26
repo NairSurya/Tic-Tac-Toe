@@ -28,6 +28,12 @@ class CustomButton: UIButton {
     func setID(id: Int) {
         self.id = id;
     }
+    
+    var utils: PubNubUtils?
+    func setPubNub(utils: PubNubUtils){
+        self.utils = utils
+    }
+    
     func clear() {
         value = -1
         self.setImage(nil , forState: .Normal)
@@ -44,12 +50,29 @@ class CustomButton: UIButton {
         self.backgroundColor = UIColor(white: 1, alpha: 0.0)
         
     }
+    var enabled: Bool? = false
+    func plsEnable(enabled: Bool) {
+        self.enabled = enabled
+    }
+    
+    var myValue: Int?
+    /** wether its X or O **/
+    func setMyValue(myVal: Int){
+        myValue = myVal
+    }
+    
+    func setMainValue(value: Int) {
+        self.value = value
+        self.setImage(value == 1 ? cross : zero, forState: UIControlState.Normal)
+    }
     
     
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        value = value == 1 ? 0 : 1
-        self.setImage(value == 1 ? cross : zero, forState: UIControlState.Normal)
-
+    
+        if( value < 0) {
+            self.setMainValue(myValue!)
+            utils?.publish("\(id) \(value)")
+        }
         
     }
 }

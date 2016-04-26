@@ -8,28 +8,55 @@
 
 import UIKit
 
-class ViewController: UIViewController {
-
+class ViewController: UIViewController, PubNubCallback {
+    let chanceValue = Int(arc4random_uniform(6) + 1)
     @IBAction func onNextButtonPressed(sender: UIButton) {
         print("Next pressed")
     }
+    
+    let pubnubUtils = PubNubUtils()
     override func viewDidLoad() {
         super.viewDidLoad()
+        pubnubUtils.setProtocol(self)
+        
         let screenSize: CGRect = UIScreen.mainScreen().bounds
         width = screenSize.width / 3.0
         height = width
         screenHeight = screenSize.height
         createButton()
+                
         // Do any additional setup after loading the view, typically from a nib.
+    }
+    func onPublish() {
+        for button in buttons as!: [CustomButton] {
+            button.setMyValue(myVal)
+        }
+    }
+    func onSuccess(message: String) {
+        let arr = message.characters.split{$0 == " "}.map(String.init)
+        
+        let handshake: String = arr[0]
+        let chance: Int? = Int(arr[1])
+        if handshake.lowercaseString.rangeOfString("handshake") != nil {
+            let myVal = self.chanceValue > chance ? 1 : 0
+            for button in buttons as!: [CustomButton] {
+                button.setMyValue(myVal)
+            }
+            
+        } else {
+            let id:Int? = Int(arr[0])
+            let value:Int? = Int(arr[1])
+            buttons[id!].setMainValue(value!)
+        }
+
+    }
+    
+    func onReceiveMessage(message: String) {
+        print(message)
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-    override func updateViewConstraints() {
-        super.updateViewConstraints()
     }
     
     @IBOutlet var mainView: UIView!
@@ -46,6 +73,7 @@ class ViewController: UIViewController {
             mainView.addSubview(button)
             buttons.append(button);
             button.setID(id)
+            button.setPubNub(pubnubUtils);
             id++
         }
         for i in 0...2 {
