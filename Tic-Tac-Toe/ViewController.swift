@@ -9,14 +9,26 @@
 import UIKit
 
 class ViewController: UIViewController, PubNubCallback {
-    let chanceValue = Int(arc4random_uniform(6) + 1)
+    var chanceValue: Int = 0
+    var timer: NSTimer?
+    func newRandom() {
+        chanceValue = Int(arc4random_uniform(100) + 1)
+    }
+    
     @IBAction func onNextButtonPressed(sender: UIButton) {
         print("Next pressed")
+        
+        for button in buttons {
+            button.clear()
+        }
+        restart()
+        GlobalData.instance.setMyChance(false)
     }
     
     let pubnubUtils = PubNubUtils()
     override func viewDidLoad() {
         super.viewDidLoad()
+        newRandom()
         pubnubUtils.setProtocol(self)
         
         let screenSize: CGRect = UIScreen.mainScreen().bounds
@@ -24,35 +36,55 @@ class ViewController: UIViewController, PubNubCallback {
         height = width
         screenHeight = screenSize.height
         createButton()
-                
-        // Do any additional setup after loading the view, typically from a nib.
+        
     }
-    func onPublish() {
-        for button in buttons as!: [CustomButton] {
-            button.setMyValue(myVal)
+    
+    func restart(){
+        if timer != nil {
+            timer?.invalidate()
         }
+        timer = NSTimer.scheduledTimerWithTimeInterval(2, target: self, selector: Selector("sendHandShake"), userInfo: nil, repeats: true)
+        timer?.fire()
     }
+    
+    func sendHandShake() {
+        pubnubUtils.publish("handshake \(chanceValue) \(GlobalData.macID)")
+    }
+    
     func onSuccess(message: String) {
         let arr = message.characters.split{$0 == " "}.map(String.init)
         
         let handshake: String = arr[0]
         let chance: Int? = Int(arr[1])
+
         if handshake.lowercaseString.rangeOfString("handshake") != nil {
-            let myVal = self.chanceValue > chance ? 1 : 0
-            for button in buttons as!: [CustomButton] {
-                button.setMyValue(myVal)
+            let macID1: Int? = Int(arr[2])
+            if(macID1 != GlobalData.macID) {
+                while (chance == chanceValue) {
+                    newRandom()
+                }
+            
+                let myValueCrossOrZero = self.chanceValue > chance ? 1 : 0
+                GlobalData.instance.setMyChance(myValueCrossOrZero == 1)
+            
+                for button in buttons {
+                    button.setMyValue(myValueCrossOrZero)
+                }
+            
+                timer?.invalidate()
             }
             
         } else {
             let id:Int? = Int(arr[0])
             let value:Int? = Int(arr[1])
-            buttons[id!].setMainValue(value!)
+            let isMyChance: Int? = Int(arr[2])
+            let macID1: Int? = Int(arr[3])
+            if(macID1 !=  GlobalData.macID) {
+                buttons[id!].setMainValue(value!)
+                GlobalData.instance.setMyChance(isMyChance == 1)
+            }
         }
 
-    }
-    
-    func onReceiveMessage(message: String) {
-        print(message)
     }
 
     override func didReceiveMemoryWarning() {

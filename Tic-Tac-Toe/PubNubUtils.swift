@@ -29,9 +29,6 @@ class PubNubUtils: NSObject, PNObjectEventListener {
 
     func publish(message: String){
         client.publish(message, toChannel: channel, compressed: false, withCompletion: nil)
-        if(myCallback != nil) {
-            myCallback?.onPublish()
-        }
     }
     
     func client(client: PubNub, didReceiveMessage message: PNMessageResult) {

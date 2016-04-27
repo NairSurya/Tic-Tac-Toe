@@ -10,5 +10,4 @@ import Foundation
 
 protocol PubNubCallback {
     func onSuccess(message: String)
-    func onPublish()
 }
